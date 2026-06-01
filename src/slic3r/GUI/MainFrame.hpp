@@ -220,12 +220,13 @@ public:
         tpHome          = 0,
         tp3DEditor      = 1,
         tpPreview       = 2,
-        tpMonitor       = 3,
-        tpMultiDevice   = 4,
-        tpProject       = 5,
-        tpCalibration   = 6,
-        tpAuxiliary     = 7,
-        toDebugTool     = 8,
+        tpLiveView      = 3,
+        tpMonitor       = 4,
+        tpMultiDevice   = 5,
+        tpProject       = 6,
+        tpCalibration   = 7,
+        tpAuxiliary     = 8,
+        toDebugTool     = 9,
     };
 
     //BBS: add slice&&print status update logic
