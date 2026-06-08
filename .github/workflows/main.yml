@@ -14,7 +14,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Grant execution permission and run the script
+      # 2. Grant execution permission and run the cleaning script
+      - name: Run Bash Script
+        run: |
+          chmod +x ./clean_build_dir.sh
+          ./clean_build_dir.sh
+        shell: bash
+
+      # 3. Grant execution permission and run the script
       - name: Run Bash Script
         run: |
           chmod +x ./build_release_macos.sh
