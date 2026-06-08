@@ -1256,7 +1256,7 @@ void MainFrame::init_tabpanel() {
         //wxString page_text = m_tabpanel->GetPageText(sel);
         m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
-            if (sel == tp3DEditor || sel == tpLiveView) {
+            if (sel == tp3DEditor) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
                 m_param_panel->OnActivate();
             }
