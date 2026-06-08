@@ -7,7 +7,7 @@ on:
 
 jobs:
   execute-script:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       # 1. Fetch code from the repository to the runner
