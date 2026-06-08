@@ -701,7 +701,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(sel == tpLiveView ? tpLiveView : tpPreview); } return; }
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
             m_plater->apply_background_progress();
             m_print_enable = get_enable_print_status();
@@ -722,7 +722,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
         else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (can_save()) m_plater->save_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'F') {
-            if (m_plater && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview)) {
+            if (m_plater && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || (m_tabpanel->GetSelection() == TabPosition::tpPreview || m_tabpanel->GetSelection() == TabPosition::tpLiveView))) {
                 m_plater->sidebar().can_search();
             }
         }
@@ -1017,6 +1017,7 @@ void MainFrame::update_layout()
         m_plater->Reparent(m_tabpanel);
         m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_active"), false);
         m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("tab_preview_active"), std::string("tab_preview_active"), false);
+        m_tabpanel->InsertPage(tpLiveView, m_plater, _L("Live Preview"), std::string("tab_preview_active"), std::string("tab_preview_active"), false);
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
 
         m_tabpanel->Bind(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
@@ -1259,11 +1260,14 @@ void MainFrame::init_tabpanel() {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
                 m_param_panel->OnActivate();
             }
-            else if (sel == tpPreview) {
+            else if (sel == tpPreview || sel == tpLiveView) {
                 m_plater->reset_check_status();
                 if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
                     return;
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
+                if (sel == tpPreview)
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
+                else
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_LIVEVIEW));
                 m_param_panel->OnActivate();
             }
             fit_tab_labels(); // ORCA on switching prepare / preview
@@ -1292,7 +1296,7 @@ void MainFrame::init_tabpanel() {
         case TabPosition::tp3DEditor:
             show_option(true);
             break;
-        case TabPosition::tpPreview:
+        case TabPosition::tpPreview || sel == tpLiveView:
             show_option(true);
             break;
         case TabPosition::tpMonitor:
@@ -1916,7 +1920,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
                 else
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-                this->m_tabpanel->SetSelection(tpPreview);
+                this->m_tabpanel->SetSelection(sel == tpLiveView ? tpLiveView : tpPreview);
             }
         });
 
@@ -3048,7 +3052,7 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().app_config->set_bool("auto_perspective", !wxGetApp().app_config->get_bool("auto_perspective"));
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
-            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || (m_tabpanel->GetSelection() == TabPosition::tpPreview || m_tabpanel->GetSelection() == TabPosition::tpLiveView); },
             [this]() { return wxGetApp().app_config->get_bool("auto_perspective"); }, this);
 
         viewMenu->AppendSeparator();
@@ -3057,7 +3061,7 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
-            this, [this]() { return m_tabpanel->GetSelection() == tpPreview; },
+            this, [this]() { return (m_tabpanel->GetSelection() == tpPreview || m_tabpanel->GetSelection() == tpLiveView); },
             [this]() { return wxGetApp().show_gcode_window(); }, this);
 
         append_menu_check_item(
@@ -3066,7 +3070,7 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().toggle_show_3d_navigator();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
-            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || (m_tabpanel->GetSelection() == TabPosition::tpPreview || m_tabpanel->GetSelection() == TabPosition::tpLiveView); },
             [this]() { return wxGetApp().show_3d_navigator(); }, this);
 
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show Gridlines"), _L("Show Gridlines on plate"),
@@ -3074,14 +3078,14 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().toggle_show_plate_gridlines();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             }, this,
-            [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
+            [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || (m_tabpanel->GetSelection() == TabPosition::tpPreview || m_tabpanel->GetSelection() == TabPosition::tpLiveView); },
             [this]() { return wxGetApp().show_plate_gridlines(); }, this);
 
         append_menu_item(
             viewMenu, wxID_ANY, _L("Reset Window Layout"), _L("Reset to default window layout"),
             [this](wxCommandEvent&) { m_plater->reset_window_layout(); }, "", this,
             [this]() {
-                return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) &&
+                return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || (m_tabpanel->GetSelection() == TabPosition::tpPreview || m_tabpanel->GetSelection() == TabPosition::tpLiveView)) &&
                        m_plater->is_sidebar_enabled();
             },
             this);
@@ -3868,7 +3872,7 @@ void MainFrame::select_tab(wxPanel* panel)
         return;
     }
     int page_idx = m_tabpanel->FindPage(panel);
-    if (page_idx == tp3DEditor && m_tabpanel->GetSelection() == tpPreview)
+    if (page_idx == tp3DEditor && (m_tabpanel->GetSelection() == tpPreview || m_tabpanel->GetSelection() == tpLiveView))
         return;
     //BBS GUI refactor: remove unused layout new/dlg
     /*if (page_idx != wxNOT_FOUND && m_layout == ESettingsLayout::Dlg)

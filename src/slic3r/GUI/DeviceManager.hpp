@@ -48,7 +48,7 @@
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 
-#define START_SEQ_ID            20000
+#define START_SEQ_ID            100000
 #define END_SEQ_ID              30000
 #define SUBSCRIBE_RETRY_COUNT   5
 
