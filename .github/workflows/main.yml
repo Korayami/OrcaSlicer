@@ -1,0 +1,22 @@
+name: Run Shell Script
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  execute-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Fetch code from the repository to the runner
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Grant execution permission and run the script
+      - name: Run Bash Script
+        run: |
+          chmod +x ./build_release_macos.sh
+          ./build_release_macos.sh
+        shell: bash
