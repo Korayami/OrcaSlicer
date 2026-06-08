@@ -4981,7 +4981,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         if (&evt.GetTimer() == &this->background_process_timer) {
             if (!this->suppressed_backround_processing_update)
                 this->update_restart_background_process(false, false);
-        } else if (&evt.GetTimer() == &this->live_preview_timer) {
+                } else if (&evt.GetTimer() == &this->live_preview_timer) {
             this->update_live_preview();
         } else if (&evt.GetTimer() == &this->auto_reslice_timer) {
             this->auto_reslice_timer.Stop();
@@ -5581,29 +5581,29 @@ void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 }
 
 //BBS: add no slice option
+
 void Plater::priv::update_live_preview()
-    void update_live_preview()
-    {
-        if (current_panel != live_preview) {
-            live_preview_timer.Stop();
-            return;
-        }
-
-        auto dev_manager = wxGetApp().getDeviceManager();
-        if (!dev_manager) return;
-
-        auto obj = dev_manager->get_selected_machine();
-        if (!obj) return;
-
-        int curr_layer = obj->curr_layer;
-        int total_layers = obj->total_layers;
-
-        if (total_layers > 0 && curr_layer >= 0) {
-            std::array<unsigned int, 2> range = {0, (unsigned int)curr_layer};
-            live_preview->get_canvas3d()->get_gcode_viewer().set_layers_z_range(range);
-            live_preview->get_canvas3d()->set_as_dirty();
-        }
+{
+    if (current_panel != live_preview) {
+        live_preview_timer.Stop();
+        return;
     }
+
+    auto dev_manager = wxGetApp().getDeviceManager();
+    if (!dev_manager) return;
+
+    auto obj = dev_manager->get_selected_machine();
+    if (!obj) return;
+
+    int curr_layer = obj->curr_layer;
+    int total_layers = obj->total_layers;
+
+    if (total_layers > 0 && curr_layer >= 0) {
+        std::array<unsigned int, 2> range = {0, (unsigned int)curr_layer};
+        live_preview->get_canvas3d()->get_gcode_viewer().set_layers_z_range(range);
+        live_preview->get_canvas3d()->set_as_dirty();
+    }
+}
 
 void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 {
@@ -6219,8 +6219,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             partplate_list.load_from_3mf_structure(plate_data, project_filament_count);
                             partplate_list.update_slice_context_to_current_plate(background_process);
                             this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-
-                            this->if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
+                            if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
                             release_PlateData_list(plate_data);
                             sidebar->obj_list()->reload_all_plates();
                             q->suppress_background_process(true);
@@ -6621,8 +6620,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     partplate_list.load_from_3mf_structure(plate_data, project_filament_count);
                     partplate_list.update_slice_context_to_current_plate(background_process);
                     this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-
-                    this->if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
+                    if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
                     release_PlateData_list(plate_data);
                     sidebar->obj_list()->reload_all_plates();
                 }
@@ -7528,6 +7526,7 @@ void Plater::priv::reset(bool apply_presets_change)
     partplate_list.reinit();
     partplate_list.update_slice_context_to_current_plate(background_process);
     preview->update_gcode_result(partplate_list.get_current_slice_result());
+    if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
 
     if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
 
@@ -7952,8 +7951,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         //BBS: update the current print to the current plate
         this->partplate_list.update_slice_context_to_current_plate(background_process);
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-
-        this->if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
+        if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
 
     background_process.fff_print()->set_check_multi_filaments_compatibility(wxGetApp().app_config->get("enable_high_low_temp_mixed_printing") == "false");
@@ -8835,8 +8833,7 @@ void Plater::priv::reload_from_disk()
                 //partplate_list.load_from_3mf_structure(plate_data);
                 partplate_list.update_slice_context_to_current_plate(background_process);
                 this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-
-                this->if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
+                if (live_preview) live_preview->update_gcode_result(partplate_list.get_current_slice_result());
                 release_PlateData_list(plate_data);
                 sidebar->obj_list()->reload_all_plates();
             }
@@ -9341,7 +9338,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             // keeps current gcode preview, if any
             preview->reload_print(true);
 
-            ((Preview*)panel)->set_as_dirty();*/
+            ((Preview*)current_panel)->set_as_dirty();*/
             if (wxGetApp().is_editor() && !q->only_gcode_mode())
                 do_reslice();
         }
@@ -17492,7 +17489,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-
         if (p->live_preview) p->live_preview->update_gcode_result(p->partplate_list.get_current_slice_result());
         p->update_print_volume_state();
 
@@ -17915,7 +17911,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             //select successfully
             p->partplate_list.update_slice_context_to_current_plate(p->background_process);
             p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-
             if (p->live_preview) p->live_preview->update_gcode_result(p->partplate_list.get_current_slice_result());
             p->update_print_volume_state();
 
@@ -18090,7 +18085,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         ret = p->partplate_list.move_plate_to_index(plate_index,0);
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-
         if (p->live_preview) p->live_preview->update_gcode_result(p->partplate_list.get_current_slice_result());
         p->sidebar->obj_list()->reload_all_plates();
         p->partplate_list.update_plates();
@@ -18135,7 +18129,6 @@ int Plater::delete_plate(int plate_index)
     //BBS: update the current print to the current plate
     p->partplate_list.update_slice_context_to_current_plate(p->background_process);
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-
     if (p->live_preview) p->live_preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     p->sidebar->obj_list()->reload_all_plates();
 
@@ -18165,7 +18158,6 @@ void Plater::update_slicing_context_to_current_partplate()
 {
     p->partplate_list.update_slice_context_to_current_plate(p->background_process);
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-
     if (p->live_preview) p->live_preview->update_gcode_result(p->partplate_list.get_current_slice_result());
 }
 
